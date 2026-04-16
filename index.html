@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CCLメンバー検索</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background: #0f172a;
+      color: #e5e7eb;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .container {
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      border: none;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      background: #3b82f6;
+      color: white;
+    }
+    .card {
+      margin-top: 20px;
+      padding: 16px;
+      background: #1e293b;
+      border-radius: 12px;
+    }
+    .big {
+      font-size: 20px;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+    .label {
+      color: #94a3b8;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>CCLメンバー情報 検索サイト</h1>
+
+    <input id="searchInput" placeholder="メンバーID または Discord名を入力">
+    <button onclick="search()">検索</button>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbwaQMAluWMvf3iQNfu-YoJCrle984iNjE91Zp1JXTYKlu61-Ct8FgoIcL3AmR6GPZaS/exec";
+
+    async function search() {
+      const query = document.getElementById("searchInput").value;
+      if (!query) return;
+
+      const res = await fetch(API_URL + "?q=" + encodeURIComponent(query));
+      const data = await res.json();
+
+      const resultDiv = document.getElementById("result");
+
+      if (!data.found) {
+        resultDiv.innerHTML = "<p>見つかりませんでした</p>";
+        return;
+      }
+
+      resultDiv.innerHTML = `
+        <div class="card">
+          <div>メンバーID：${data.member_id}</div>
+          <div>名前：${data.discord_name}</div>
+          <div>プラン：${data.plan}</div>
+
+          <div class="big">現在のランク：${data.rank}</div>
+          <div class="big">獲得ポイント：${data.points}pt</div>
+
+          <div>次ランクまで：あと${data.next_rank}pt</div>
+          <div>TOP10まで：${data.to_top10}</div>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
