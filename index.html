@@ -585,42 +585,73 @@
       font-size: 16px;
       font-weight: 800;
       letter-spacing: 0.02em;
-      border: 1px solid rgba(255,255,255,0.08);
+      border: 2px solid rgba(255,255,255,0.08);
       background: rgba(255,255,255,0.06);
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+      text-shadow: none;
     }
 
     .rank-c {
-      color: #edf2ff;
-      background: linear-gradient(180deg, rgba(131, 146, 179, 0.32), rgba(87, 101, 130, 0.24));
-      border-color: rgba(198, 210, 236, 0.18);
+      color: #000000;
+      background:
+        linear-gradient(180deg, #d7ff8a 0%, #9be15d 52%, #76c442 100%);
+      border-color: #5ba833;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.35),
+        0 0 20px rgba(129, 214, 58, 0.22);
     }
 
     .rank-b {
-      color: #e4f1ff;
-      background: linear-gradient(180deg, rgba(72, 129, 255, 0.34), rgba(41, 82, 177, 0.26));
-      border-color: rgba(130, 175, 255, 0.22);
+      color: #000000;
+      background:
+        linear-gradient(180deg, #ffd08c 0%, #ffad42 52%, #f08400 100%);
+      border-color: #d16e00;
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.08),
-        0 0 22px rgba(72, 129, 255, 0.15);
+        inset 0 1px 0 rgba(255,255,255,0.34),
+        0 0 20px rgba(255, 153, 0, 0.22);
     }
 
     .rank-a {
-      color: #f0ebff;
-      background: linear-gradient(180deg, rgba(122, 91, 255, 0.34), rgba(84, 50, 179, 0.28));
-      border-color: rgba(177, 152, 255, 0.24);
+      color: #000000;
+      background:
+        linear-gradient(180deg, #fff6a6 0%, #ffe45c 50%, #ffcd00 100%);
+      border-color: #d4b000;
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.08),
-        0 0 24px rgba(122, 91, 255, 0.16);
+        inset 0 1px 0 rgba(255,255,255,0.42),
+        0 0 22px rgba(255, 214, 0, 0.22);
     }
 
-    .rank-top {
-      color: #fff8dd;
-      background: linear-gradient(180deg, rgba(255, 210, 76, 0.36), rgba(160, 115, 17, 0.28));
-      border-color: rgba(255, 219, 117, 0.26);
+    .rank-s {
+      color: #f7d76a;
+      background:
+        linear-gradient(135deg, #caa8ff 0%, #8e44ff 22%, #5f23d4 44%, #c8a9ff 58%, #6d28d9 76%, #4b168f 100%);
+      border-color: #d4af37;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.45);
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.08),
-        0 0 28px rgba(255, 198, 66, 0.18);
+        inset 0 1px 0 rgba(255,255,255,0.35),
+        0 0 24px rgba(145, 92, 255, 0.38);
+    }
+
+    .rank-ss {
+      color: #f7d76a;
+      background:
+        linear-gradient(135deg, #ffb3b3 0%, #ff3d3d 20%, #b31212 45%, #ff9a9a 58%, #d11f1f 78%, #5d0b0b 100%);
+      border-color: #d4af37;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.45);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.3),
+        0 0 26px rgba(255, 59, 59, 0.42);
+    }
+
+    .rank-sss {
+      color: #f7d76a;
+      background:
+        linear-gradient(135deg, #4b4b4b 0%, #0f0f0f 20%, #000000 45%, #595959 58%, #111111 76%, #000000 100%);
+      border-color: #d4af37;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.18),
+        0 0 28px rgba(255, 215, 0, 0.2);
     }
 
     .progress-section {
@@ -675,12 +706,12 @@
     }
 
     .progress-fill {
-      width: 100%;
       height: 100%;
       border-radius: inherit;
-      background: linear-gradient(90deg, rgba(94,162,255,0.55), rgba(125,211,252,0.95));
-      box-shadow: 0 0 20px rgba(125,211,252,0.2);
+      background: linear-gradient(90deg, #1ea94b 0%, #38d66b 55%, #79f2a0 100%);
+      box-shadow: 0 0 18px rgba(56, 214, 107, 0.38);
       transform-origin: left center;
+      min-width: 0;
       animation: progressPulse 2.8s ease-in-out infinite;
     }
 
@@ -870,14 +901,9 @@
     function normalizeRank(rank) {
       const text = String(rank ?? "").trim().toUpperCase();
 
-      if (
-        text.includes("チャンピオン") ||
-        text.includes("ランカー") ||
-        text.includes("TOP") ||
-        text.includes("S")
-      ) {
-        return "top";
-      }
+      if (text.includes("SSS")) return "sss";
+      if (text.includes("SS")) return "ss";
+      if (text.includes("S")) return "s";
       if (text.includes("A")) return "a";
       if (text.includes("B")) return "b";
       return "c";
@@ -885,10 +911,56 @@
 
     function getRankClass(rank) {
       const normalized = normalizeRank(rank);
-      if (normalized === "top") return "rank-top";
+      if (normalized === "sss") return "rank-sss";
+      if (normalized === "ss") return "rank-ss";
+      if (normalized === "s") return "rank-s";
       if (normalized === "a") return "rank-a";
       if (normalized === "b") return "rank-b";
       return "rank-c";
+    }
+
+    function getRankMaxPoints(rank) {
+      const normalized = normalizeRank(rank);
+      if (normalized === "c") return 300;
+      if (normalized === "b") return 800;
+      if (normalized === "a") return 1500;
+      if (normalized === "s") return 3000;
+      if (normalized === "ss") return 5000;
+      return 0;
+    }
+
+    function extractNumber(value) {
+      const matches = String(value ?? "").match(/\d+/g);
+      if (!matches) return 0;
+      return parseInt(matches.join(""), 10) || 0;
+    }
+
+    function calculateRankProgress(rank, remainingText) {
+      const normalized = normalizeRank(rank);
+
+      if (normalized === "sss") {
+        return 100;
+      }
+
+      const max = getRankMaxPoints(rank);
+      const remaining = extractNumber(remainingText);
+
+      if (max <= 0) return 0;
+
+      const progress = ((max - remaining) / max) * 100;
+      return Math.max(0, Math.min(100, progress));
+    }
+
+    function calculateTop10Progress(toTop10Text) {
+      const remaining = extractNumber(toTop10Text);
+
+      if (remaining <= 0) {
+        return 100;
+      }
+
+      const base = Math.max(remaining, 100);
+      const progress = (base / (base + remaining)) * 100;
+      return Math.max(6, Math.min(100, progress));
     }
 
     function formatPoint(value, suffix = "pt") {
@@ -938,6 +1010,8 @@
       const nextRank = escapeHtml(formatProgressText(data.next_rank));
       const top10 = escapeHtml(formatProgressText(data.to_top10));
       const rankClass = getRankClass(data.rank);
+      const nextProgress = calculateRankProgress(data.rank, data.next_rank);
+      const top10Progress = calculateTop10Progress(data.to_top10);
 
       resultEl.innerHTML = `
         <article class="member-card" aria-label="検索結果">
@@ -988,7 +1062,7 @@
                 次のランク到達に必要な残りポイントです。
               </div>
               <div class="progress-bar" aria-hidden="true">
-                <div class="progress-fill"></div>
+                <div class="progress-fill" style="width: ${nextProgress}%;"></div>
               </div>
             </section>
 
@@ -1001,7 +1075,7 @@
                 TOP10入りまでの現在の差を表示しています。
               </div>
               <div class="progress-bar" aria-hidden="true">
-                <div class="progress-fill"></div>
+                <div class="progress-fill" style="width: ${top10Progress}%;"></div>
               </div>
             </section>
           </div>
