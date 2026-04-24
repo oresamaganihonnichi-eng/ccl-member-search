@@ -1263,25 +1263,38 @@
       return "top10-rank-display top10-rank-elite";
     }
 
-    function calculateTop10Progress(toTop10Text, currentPoints) {
-      const rankNumber = parseTop10Rank(toTop10Text);
+    function calculateTop10Progress(toTop10Text, currentPoints = 0) {
+  const rankNumber = parseTop10Rank(toTop10Text);
 
-      if (rankNumber !== null) {
-        return 100;
-      }
+  // TOP10入りしている場合
+  if (rankNumber !== null) {
+    return 100;
+  }
 
-      const points = Math.max(0, extractNumber(currentPoints));
-      const remaining = Math.max(0, extractNumber(toTop10Text));
+  const remaining = extractNumber(toTop10Text);
+  const points = Number(currentPoints) || 0;
 
-      if (points <= 0) return 0;
-      if (remaining <= 0) return 100;
+  // 本人の週間ptが0ならゲージは0%
+  if (points <= 0) {
+    return 0;
+  }
 
-      const borderLine = points + remaining;
-      if (borderLine <= 0) return 0;
+  // 「あと○pt」も取れない場合は0%
+  if (remaining <= 0) {
+    return 0;
+  }
 
-      const progress = (points / borderLine) * 100;
-      return Math.max(1, Math.min(99, progress));
-    }
+  // 10位ライン = 本人pt + あと必要pt
+  const borderPoint = points + remaining;
+
+  if (borderPoint <= 0) {
+    return 0;
+  }
+
+  const progress = (points / borderPoint) * 100;
+
+  return Math.max(0, Math.min(100, progress));
+}
 
     function formatPoint(value, suffix = "pt") {
       const text = String(value ?? "").trim();
