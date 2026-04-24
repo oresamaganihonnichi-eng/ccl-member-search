@@ -669,6 +669,86 @@
       border: 1px solid rgba(122, 162, 255, 0.12);
     }
 
+
+
+    .ranking-dual-section {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr;
+      margin-top: 12px;
+    }
+
+    .ranking-card-label-total,
+    .ranking-card-label-weekly {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .progress-card.ranking-total-card {
+      border-color: rgba(255, 220, 120, 0.42);
+      background:
+        linear-gradient(180deg, rgba(36, 28, 8, 0.94), rgba(8, 10, 20, 0.96)),
+        radial-gradient(circle at 100% 0%, rgba(255, 220, 120, 0.16), transparent 34%);
+    }
+
+    .progress-card.ranking-weekly-card {
+      border-color: rgba(94, 211, 255, 0.36);
+      background:
+        linear-gradient(180deg, rgba(9, 31, 54, 0.94), rgba(7, 12, 26, 0.96)),
+        radial-gradient(circle at 100% 0%, rgba(94, 211, 255, 0.16), transparent 34%);
+    }
+
+    .progress-card.top10-card.ranking-total-card,
+    .progress-card.top10-card.ranking-weekly-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .progress-card.top10-card.ranking-total-card::after,
+    .progress-card.top10-card.ranking-weekly-card::after {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      pointer-events: none;
+      background:
+        linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.12) 15%, transparent 30%, transparent 100%);
+      transform: translateX(-130%);
+      animation: rankShine 4.2s ease-in-out infinite;
+    }
+
+    @keyframes rankShine {
+      0%, 55% { transform: translateX(-130%); opacity: 0; }
+      66% { opacity: 1; }
+      100% { transform: translateX(130%); opacity: 0; }
+    }
+
+    .ranking-title-mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      color: #111827;
+      background: linear-gradient(180deg, #fff6c7, #d9a927);
+      box-shadow: 0 0 16px rgba(255, 218, 92, 0.26);
+    }
+
+    .ranking-weekly-card .ranking-title-mark {
+      color: #03111f;
+      background: linear-gradient(180deg, #dff8ff, #67d8ff);
+      box-shadow: 0 0 16px rgba(103, 216, 255, 0.24);
+    }
+
+    .progress-fill.is-empty {
+      background: linear-gradient(90deg, #020617 0%, #071128 100%);
+      box-shadow: none;
+      opacity: 1;
+    }
+
     .progress-card.top10-card {
       position: relative;
       overflow: hidden;
@@ -993,6 +1073,10 @@
         grid-template-columns: repeat(2, 1fr);
       }
 
+      .ranking-dual-section {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
       .member-card {
         padding: 24px 22px 22px;
       }
@@ -1045,7 +1129,7 @@
               id="searchInput"
               class="search-input"
               type="text"
-              placeholder="例：M0020 / アンブレラ"
+              placeholder="例：M0000 / でぐち"
               autocomplete="off"
               enterkeyhint="search"
             />
@@ -1059,7 +1143,7 @@
         <div id="status" class="status" aria-live="polite"></div>
 
         <div class="hint">
-          完全一致で検索されます。member_id か Discord表示名をそのまま入力してください。
+          メンバーIDは完全一致、Discord表示名は部分一致でも検索できます。
         </div>
       </section>
     </section>
@@ -1179,22 +1263,24 @@
       return "top10-rank-display top10-rank-elite";
     }
 
-    function calculateTop10Progress(toTop10Text) {
+    function calculateTop10Progress(toTop10Text, currentPoints) {
       const rankNumber = parseTop10Rank(toTop10Text);
 
       if (rankNumber !== null) {
         return 100;
       }
 
-      const remaining = extractNumber(toTop10Text);
+      const points = Math.max(0, extractNumber(currentPoints));
+      const remaining = Math.max(0, extractNumber(toTop10Text));
 
-      if (remaining <= 0) {
-        return 100;
-      }
+      if (points <= 0) return 0;
+      if (remaining <= 0) return 100;
 
-      const maxGap = 3000;
-      const progress = ((maxGap - Math.min(remaining, maxGap)) / maxGap) * 100;
-      return Math.max(8, Math.min(100, progress));
+      const borderLine = points + remaining;
+      if (borderLine <= 0) return 0;
+
+      const progress = (points / borderLine) * 100;
+      return Math.max(1, Math.min(99, progress));
     }
 
     function formatPoint(value, suffix = "pt") {
@@ -1238,51 +1324,65 @@
       `;
     }
 
-    function buildTop10Section(rawTop10Value) {
-      const rankNumber = parseTop10Rank(rawTop10Value);
-      const progress = calculateTop10Progress(rawTop10Value);
+    function getFirstValue(...values) {
+      for (const value of values) {
+        const text = String(value ?? "").trim();
+        if (text) return value;
+      }
+      return "";
+    }
+
+    function buildRankingSection({ rawValue, points, title, type }) {
+      const safeRawValue = String(rawValue ?? "").trim();
+      const rankNumber = parseTop10Rank(safeRawValue);
+      const progress = calculateTop10Progress(safeRawValue, points);
+      const progressClass = progress <= 0 ? "progress-fill is-empty" : "progress-fill";
+      const typeClass = type === "weekly" ? "ranking-weekly-card" : "ranking-total-card";
+      const markText = type === "weekly" ? "W" : "T";
+      const titleClass = type === "weekly" ? "ranking-card-label-weekly" : "ranking-card-label-total";
 
       if (rankNumber !== null) {
         const cardClass = getTop10CardClass(rankNumber);
         const displayClass = getTop10DisplayClass(rankNumber);
         const displayText = `${rankNumber}位`;
+        const crown = rankNumber === 1 ? "👑" : rankNumber === 2 ? "◆" : rankNumber === 3 ? "◇" : "✦";
 
         return `
-          <section class="progress-card ${cardClass}">
+          <section class="progress-card ${cardClass} ${typeClass}">
             <div class="progress-title">
-              <span>TOP10 STATUS</span>
+              <span class="${titleClass}"><span class="ranking-title-mark">${markText}</span>${escapeHtml(title)}</span>
               <span>TOP10入り達成</span>
             </div>
 
             <div class="top10-rank-wrap">
-              <div class="top10-crown">👑</div>
+              <div class="top10-crown">${crown}</div>
               <div class="${displayClass}">${displayText}</div>
             </div>
 
             <div class="progress-note">
-              現在TOP10メンバーです。上位を維持して、さらに高みを目指しましょう。
+              ${escapeHtml(title)}のTOP10メンバーです。順位を守りながら、さらに上位を狙いましょう。
             </div>
 
             <div class="progress-bar" aria-hidden="true">
-              <div class="progress-fill" style="width: ${progress}%;"></div>
+              <div class="${progressClass}" style="width: ${progress}%;"></div>
             </div>
           </section>
         `;
       }
 
-      const top10Text = escapeHtml(formatProgressText(rawTop10Value));
+      const top10Text = escapeHtml(formatProgressText(safeRawValue));
 
       return `
-        <section class="progress-card">
+        <section class="progress-card ${typeClass}">
           <div class="progress-title">
-            <span>TOP10まで</span>
+            <span class="${titleClass}"><span class="ranking-title-mark">${markText}</span>${escapeHtml(title)}TOP10まで</span>
             <span>${top10Text}</span>
           </div>
           <div class="progress-note">
-            TOP10入りまでの現在の差を表示しています。
+            現在の獲得ポイントを基準に、TOP10ラインまでの距離を表示しています。
           </div>
           <div class="progress-bar" aria-hidden="true">
-            <div class="progress-fill" style="width: ${progress}%;"></div>
+            <div class="${progressClass}" style="width: ${progress}%;"></div>
           </div>
         </section>
       `;
@@ -1297,7 +1397,21 @@
       const nextRank = escapeHtml(formatProgressText(data.next_rank));
       const rankClass = getRankClass(data.rank);
       const nextProgress = calculateRankProgress(data.rank, data.next_rank);
-      const top10Section = buildTop10Section(data.to_top10);
+      const totalTop10Value = getFirstValue(data.to_top10, data.total_to_top10, data.total_top10, data.rank_total);
+      const weeklyTop10Value = getFirstValue(data.weekly_to_top10, data.to_weekly_top10, data.weekly_top10, data.weekly_status, data.rank_weekly);
+      const weeklyPoints = getFirstValue(data.weekly_points, data.weekly_pt, data.points_weekly, data.points);
+      const totalTop10Section = buildRankingSection({
+        rawValue: totalTop10Value,
+        points: data.points,
+        title: "総合ランキング",
+        type: "total",
+      });
+      const weeklyTop10Section = buildRankingSection({
+        rawValue: weeklyTop10Value,
+        points: weeklyPoints,
+        title: "週間ランキング",
+        type: "weekly",
+      });
 
       resultEl.innerHTML = `
         <article class="member-card" aria-label="検索結果">
@@ -1352,7 +1466,11 @@
               </div>
             </section>
 
-            ${top10Section}
+          </div>
+
+          <div class="ranking-dual-section">
+            ${totalTop10Section}
+            ${weeklyTop10Section}
           </div>
         </article>
       `;
@@ -1372,7 +1490,7 @@
       renderEmpty("検索中", "該当するメンバー情報を確認しています。");
 
       try {
-        const response = await fetch(`${API_URL}?q=${encodeURIComponent(query)}`, {
+        const response = await fetch(`${API_URL}?q=${encodeURIComponent(query)}&name_match=partial`, {
           method: "GET",
           cache: "no-store",
         });
